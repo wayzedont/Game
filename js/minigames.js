@@ -1,3 +1,6 @@
+const MG_BRUSH = '<svg viewBox="0 0 40 40" width="44" height="44"><rect x="6" y="20" width="22" height="8" fill="#d8d8d8" stroke="#333"/><path d="M8 28v6M12 28v6M16 28v6M20 28v6M24 28v6" stroke="#f4e9c0" stroke-width="2"/><rect x="26" y="21" width="12" height="5" fill="#b5332e" stroke="#333"/></svg>';
+const MG_CLOTH = '<svg viewBox="0 0 40 40" width="46" height="46"><path d="M6 10 L30 6 L34 28 L12 34 Z" fill="#e9e4d4" stroke="#555"/><path d="M10 16 L30 12 M11 22 L31 18 M12 28 L32 24" stroke="#c9c2ad"/></svg>';
+
 // =====================================================================
 //  Мини-игры ремонта: чистка, замена детали (винты), склейка
 // =====================================================================
@@ -5,7 +8,7 @@
 const Minigame = {
   open(title) {
     const ov = $('#mg');
-    ov.innerHTML = `<div class="mg-head"><div class="mg-title">${title}</div><div class="mg-hint" id="mgHint"></div><div class="bar"><i id="mgBar"></i></div></div><div class="mg-stage" id="mgStage"></div><div class="mg-foot" id="mgFoot"></div>`;
+    ov.innerHTML = `<div class="mg-head"><div class="mg-title"><small>МАСТЕРСКАЯ</small>${title}</div><div class="mg-hint" id="mgHint"></div><div class="bar"><i id="mgBar"></i></div></div><div class="mg-stage" id="mgStage"></div><div class="mg-foot" id="mgFoot"></div>`;
     ov.classList.add('show');
     return $('#mgStage');
   },
@@ -18,13 +21,13 @@ const Minigame = {
     Sfx.good();
     const sp = el('div', { class: 'sparkles' });
     for (let i = 0; i < 14; i++) {
-      const d = el('i'); d.textContent = '✦';
+      const d = el('i'); d.textContent = '+';
       d.style.left = R.i(10, 90) + '%'; d.style.top = R.i(10, 90) + '%';
       d.style.animationDelay = (i * 0.05) + 's';
       sp.appendChild(d);
     }
     stage.appendChild(sp);
-    this.hint('<b>Готово!</b>');
+    this.hint('<b>РАБОТА ВЫПОЛНЕНА</b>');
     await wait(1100);
     this.close();
     const time = (performance.now() - t0) / 1000;
@@ -43,10 +46,10 @@ const Minigame = {
     return new Promise((resolve) => {
       const stage = this.open('Чистка: ' + item.title);
       const view = item.type === 'ring' ? 0 : 0;
-      stage.innerHTML = `<div class="mg-item">${itemSvg(item, view, { noDirt: true })}</div><canvas id="cDirt"></canvas><canvas id="cFoam"></canvas><div class="tool-cursor" id="tCur">🪥</div>`;
+      stage.innerHTML = `<div class="mg-item">${itemPix(item, view, { res: 256, noDirt: true })}</div><canvas id="cDirt"></canvas><canvas id="cFoam"></canvas><div class="tool-cursor" id="tCur">${MG_BRUSH}</div>`;
       const cd = $('#cDirt'), cf = $('#cFoam'), cur = $('#tCur');
       const rect = stage.getBoundingClientRect();
-      const W = rect.width, H = rect.height, dpr = Math.min(2, window.devicePixelRatio || 1);
+      const W = rect.width, H = rect.height, dpr = 0.5;
       [cd, cf].forEach((c) => { c.width = W * dpr; c.height = H * dpr; c.style.width = W + 'px'; c.style.height = H + 'px'; });
       const xd = cd.getContext('2d', { willReadFrequently: true }), xf = cf.getContext('2d', { willReadFrequently: true });
       xd.scale(dpr, dpr); xf.scale(dpr, dpr);
@@ -102,7 +105,7 @@ const Minigame = {
           if (left < 0.06) {
             xd.clearRect(0, 0, W, H);
             phase = 2; foam0 = Math.max(1, count(xf, cf));
-            cur.textContent = '🧻';
+            cur.innerHTML = MG_CLOTH;
             this.hint('Шаг 2/2 — <b>протрите тряпкой</b> пену');
             Sfx.pop();
           }
@@ -133,7 +136,7 @@ const Minigame = {
       stage.innerHTML = `
         <div class="pt-dev ${isPhone ? 'phone' : 'round'}"><div class="pt-slot" id="ptSlot"></div></div>
         <div class="pt-part old ${isPhone ? 'phone' : 'round'}" id="ptOld"></div>
-        <div class="pt-bin" id="ptBin">🗑️</div>
+        <div class="pt-bin" id="ptBin">${icon('box')}<small>В УТИЛЬ</small></div>
         <div class="pt-tray"><div class="pt-part new ${isPhone ? 'phone' : 'round'}" id="ptNew"></div></div>
         ${screws.map((s, i) => `<div class="pt-screw" data-i="${i}" style="left:${s[0]}%;top:${s[1]}%"><i></i></div>`).join('')}`;
       const old = $('#ptOld'), nw = $('#ptNew'), slot = $('#ptSlot'), bin = $('#ptBin');
@@ -204,7 +207,7 @@ const Minigame = {
       ];
       const fixedItem = Object.assign({}, item, { museum: false });
       const vaseInner = ITEM_TYPES.vase.svg(fixedItem, 0, uid('gv'));
-      let html = `<div class="mg-item">${itemSvg(fixedItem, 0, { noDirt: true })}</div><svg class="glue-holes" viewBox="0 0 200 200">`;
+      let html = `<div class="mg-item">${itemPix(fixedItem, 0, { res: 256, noDirt: true })}</div><svg class="glue-holes" viewBox="0 0 200 200">`;
       holes.forEach((h, i) => { html += `<polygon id="gh${i}" points="${h.map((p) => p.join(',')).join(' ')}" fill="#14171f" stroke="#8a97ab" stroke-dasharray="3 2"/>`; });
       html += '</svg>';
       stage.innerHTML = html;

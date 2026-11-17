@@ -630,12 +630,55 @@ function dirtSvg(it, p) {
   return s + '</g>';
 }
 
-// Полный SVG предмета
+// Полный SVG предмета (opts: noDirt, uv)
 function itemSvg(it, view = 0, opts = {}) {
   const T = ITEM_TYPES[it.type];
   const p = uid('s');
   const dirt = opts.noDirt ? '' : dirtSvg(it, p);
-  return `<svg class="item-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><g class="base">${T.svg(it, view, p)}${dirt}</g><rect class="uvdim" x="-50" y="-50" width="300" height="300" fill="#12042e" opacity=".78"/><g class="uvl">${T.uv ? T.uv(it, view, p + 'u') : ''}</g></svg>`;
+  const uv = opts.uv ? `<rect x="-50" y="-50" width="300" height="300" fill="#12042e" opacity=".78"/><g>${T.uv ? T.uv(it, view, p + 'u') : ''}</g>` : '';
+  return `<svg class="item-svg" viewBox="0 0 200 200" width="200" height="200" xmlns="http://www.w3.org/2000/svg"><g>${T.svg(it, view, p)}${dirt}</g>${uv}</svg>`;
+}
+
+// ---------------------------------------------------------------------
+//  Растр «как текстура PS2»: SVG -> маленький canvas -> <img class="pix">
+// ---------------------------------------------------------------------
+const PIX = { cache: new Map(), pending: new Map() };
+function svgUrl(svg) { return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg); }
+function rasterizeSvg(svg, res) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const c = document.createElement('canvas');
+      c.width = c.height = res;
+      const x = c.getContext('2d');
+      x.drawImage(img, 0, 0, res, res);
+      resolve(c);
+    };
+    img.onerror = () => resolve(null);
+    img.src = svgUrl(svg);
+  });
+}
+function pixKey(it, view, opts) {
+  return [it.id, view, opts.res || 128, opts.uv ? 1 : 0, opts.noDirt ? 1 : 0, it.condition.toFixed(2), it.cracked ? 1 : 0].join('_');
+}
+function itemCanvas(it, view = 0, opts = {}) {
+  const key = pixKey(it, view, opts);
+  if (PIX.pending.has(key)) return PIX.pending.get(key);
+  const pr = rasterizeSvg(itemSvg(it, view, opts), opts.res || 128).then((c) => {
+    if (c) {
+      try { PIX.cache.set(key, c.toDataURL()); } catch (e) { /* */ }
+      document.querySelectorAll('img[data-pk="' + key + '"]').forEach((im) => { im.src = PIX.cache.get(key); });
+    }
+    return c;
+  });
+  PIX.pending.set(key, pr);
+  return pr;
+}
+function itemPix(it, view = 0, opts = {}) {
+  const key = pixKey(it, view, opts);
+  let src = PIX.cache.get(key);
+  if (!src) { itemCanvas(it, view, opts); src = svgUrl(itemSvg(it, view, opts)); }
+  return `<img class="pix" data-pk="${key}" src="${src}" alt="" draggable="false">`;
 }
 
 // Эталон для каталога: «чистый» оригинал

@@ -78,6 +78,8 @@ const Sfx = {
     s.start();
   },
   click() { this.tone(900, 0.04, 'square', 0.05); },
+  tick() { this.tone(1400, 0.025, 'square', 0.035); },
+  boot() { [196, 262, 392, 523, 784].forEach((f, i) => this.tone(f, 1.6 - i * 0.2, 'sine', 0.07, 0, i * 0.12)); this.tone(98, 2, 'triangle', 0.08); },
   coin() { this.tone(1320, 0.08, 'square', 0.07); this.tone(1760, 0.18, 'square', 0.07, 0, 0.07); },
   cash() { this.noise(0.12, 0.1, 3000); this.coin(); },
   bad() { this.tone(220, 0.25, 'sawtooth', 0.09, -80); },
