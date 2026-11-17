@@ -13,6 +13,7 @@ const SHOP = {
 };
 
 const SAVE_KEY = 'lombard_save_v1';
+function getBest() { try { return +(localStorage.getItem('lombard_best') || 0); } catch (e) { return 0; } }
 let S = null;
 
 function newState() {
@@ -866,7 +867,7 @@ function openShop() {
 
 function gameOver() {
   const why = S.rep <= 0 ? 'Репутация упала до нуля — клиенты обходят ваш ломбард стороной.' : 'Нечем платить аренду. Хозяин помещения сменил замки.';
-  const best = Math.max(S.day, +(localStorage.getItem('lombard_best') || 0));
+  const best = Math.max(S.day, getBest());
   try { localStorage.setItem('lombard_best', best); } catch (e) { /* */ }
   wipe();
   modal(`<div class="center"><div class="big-ic">🔒</div><h2>Ломбард закрыт</h2><p>${why}</p>
@@ -892,7 +893,7 @@ function showIntro(after) {
 
 function boot() {
   const saved = load();
-  const best = +(localStorage.getItem('lombard_best') || 0);
+  const best = getBest();
   $('#title').innerHTML = `
     <div class="title-card">
       <div class="logo-sign">ЛОМБАРД</div>
