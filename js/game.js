@@ -328,7 +328,7 @@ function haggleUI({ head, current, min, max, start, onOffer, onAccept, acceptLab
   });
   box.appendChild(menuList([
     { t: offerLabel, g: 'x', fn: () => { if (limit != null && v > limit) { toast('НЕ ХВАТАЕТ ДЕНЕГ В КАССЕ', 'bad'); return; } onOffer(v); } },
-    { t: acceptLabel, g: 't', fn: () => { if (limit != null && current > limit) { toast('НЕ ХВАТАЕТ ДЕНЕГ В КАССЕ', 'bad'); return; } onAccept(); } },
+    { t: acceptLabel, g: 't', icon: 'hand', fn: () => { if (limit != null && current > limit) { toast('НЕ ХВАТАЕТ ДЕНЕГ В КАССЕ', 'bad'); return; } onAccept(); } },
     { t: 'Назад', g: 'o', fn: onBack },
   ]));
 }
@@ -565,11 +565,11 @@ function openInspect(it, c) {
       <div class="ins-title"><small>ОСМОТР · ${T.cat.toUpperCase()}</small><b>${it.title}</b></div>
       <div class="ins-cond">СОСТОЯНИЕ<b>${condText(it.condition).toUpperCase()}</b></div>
     </div>
-    <div class="ins-views"><button class="lr" id="insPrev"><span class="sh">L1</span></button><div id="insViewName"></div><button class="lr" id="insNext"><span class="sh">R1</span></button></div>
+    <div class="ins-views"><button class="lr" id="insPrev" aria-label="Предыдущая сторона">‹</button><div id="insViewName"></div><button class="lr" id="insNext" aria-label="Следующая сторона">›</button></div>
     <div class="ins-stage" id="insStage"><div class="ins-item" id="insItem"></div><div class="fx" id="insFx"></div></div>
     <div class="ins-read" id="insRead">Зажмите и водите по предмету — <b>лупа</b> покажет мелкие детали.</div>
     <div class="ins-tools" id="insTools"></div>
-    <div class="ins-foot"><button class="mi" id="insClose">${gp('o')}<span class="mi-t">Вернуться</span></button></div>`;
+    <div class="ins-foot"><button class="mi back wide" id="insClose">${icon('back')}<span class="mi-t">Вернуться</span></button></div>`;
   ov.classList.add('show');
   const close = () => { Sfx.click(); ov.classList.remove('show'); ov.innerHTML = ''; insState = null; };
   $('#insClose').onclick = close;
@@ -731,9 +731,9 @@ function openInventory(onPick, wantType) {
         <div class="inv-thumb">${itemPix(it, 0, { res: 64 })}</div>
         <div class="inv-info"><b>${it.title}</b><small>куплено за ${money(e.paid)} · ${condText(it.condition)}</small>${match ? '<small class="ok">то, что ищет клиент</small>' : ''}</div>
         <div class="inv-btns">
-          ${onPick ? `<button class="sbtn hot" data-pick="${i}">${gp('x')}Предложить</button>` : ''}
-          ${canClean ? `<button class="sbtn" data-clean="${i}">${gp('t')}Почистить</button>` : ''}
-          <button class="sbtn" data-look="${i}">${gp('s')}Осмотр</button>
+          ${onPick ? `<button class="sbtn hot" data-pick="${i}">${icon('tag')}Предложить</button>` : ''}
+          ${canClean ? `<button class="sbtn" data-clean="${i}">${icon('sparkle')}Почистить</button>` : ''}
+          <button class="sbtn" data-look="${i}">${icon('lens')}Осмотр</button>
         </div></div>`;
     }).join('') : '<p class="muted center">Склад пуст. Купите что-нибудь у клиентов.</p>';
     const m = modal(`${!onPick ? '<p class="muted">Почищенные вещи стоят дороже. Продавайте покупателям или на вечернем аукционе.</p>' : ''}<div class="inv-list">${list}</div>`,
@@ -756,12 +756,12 @@ function openInventory(onPick, wantType) {
 function openPause() {
   if ($('#modal').classList.contains('show') || $('#title').classList.contains('show')) return;
   modal2(`<table class="kv"><tr><td>День</td><td>${pad2(S.day)}</td></tr><tr><td>Касса</td><td class="money">${money(S.money)}</td></tr><tr><td>Репутация</td><td>${Math.round(S.rep)} / 100</td></tr><tr><td>Аренда сегодня</td><td class="bad">${money(rent(S.day))}</td></tr><tr><td>Воров поймано</td><td>${S.stats.caught}</td></tr></table>`, [
-    { t: 'Продолжить', g: 'o', fn: closeModal2 },
-    { t: 'Каталог оценщика', g: 'x', fn: () => { closeModal2(); openCatalog(currentCustomer && currentCustomer.item ? currentCustomer.item.type : 'watch'); } },
-    { t: 'Ориентировки', g: 'x', fn: () => { closeModal2(); openWanted(); } },
-    { t: `Склад (${S.inventory.length})`, g: 'x', fn: () => { closeModal2(); openInventory(null); } },
-    { t: Sfx.muted ? 'Звук: выкл' : 'Звук: вкл', g: 't', fn: () => { Sfx.muted = !Sfx.muted; closeModal2(); openPause(); } },
-  ], 'ПАУЗА');
+    { t: 'Продолжить', g: 'x', fn: closeModal2 },
+    { t: 'Каталог', g: 't', icon: 'book', fn: () => { closeModal2(); openCatalog(currentCustomer && currentCustomer.item ? currentCustomer.item.type : 'watch'); } },
+    { t: 'Ориентировки', g: 't', icon: 'wanted', fn: () => { closeModal2(); openWanted(); } },
+    { t: `Склад (${S.inventory.length})`, g: 't', icon: 'box', fn: () => { closeModal2(); openInventory(null); } },
+    { t: Sfx.muted ? 'Звук: выкл' : 'Звук: вкл', g: 't', icon: 'sign', fn: () => { Sfx.muted = !Sfx.muted; closeModal2(); openPause(); } },
+  ], 'МЕНЮ');
 }
 
 // ---------------------------------------------------------------------
@@ -847,7 +847,7 @@ function openShop() {
     const rows = Object.entries(SHOP).map(([k, s]) => {
       const own = has(k);
       return `<div class="shop-row ${own ? 'own' : ''}"><div class="shop-ic">${icon(s.icon)}</div><div class="inv-info"><b>${s.name}</b><small>${s.desc}</small></div>
-        ${own ? '<span class="owned">КУПЛЕНО</span>' : `<button class="sbtn hot" data-buy="${k}" ${S.money < s.price ? 'disabled' : ''}>${gp('x')}${money(s.price)}</button>`}</div>`;
+        ${own ? '<span class="owned">КУПЛЕНО</span>' : `<button class="sbtn hot" data-buy="${k}" ${S.money < s.price ? 'disabled' : ''}>${icon('coin')}${money(s.price)}</button>`}</div>`;
     }).join('');
     const m = modal(`<table class="kv"><tr><td>В кассе</td><td class="money">${money(S.money)}</td></tr><tr><td>Завтра аренда</td><td class="bad">${money(rent(S.day + 1))}</td></tr></table><div class="inv-list">${rows}</div>`,
       [{ t: 'Следующий день', g: 'x', fn: () => { closeModal(); S.day++; S.wanted = []; saveMsg(); startDay(); } }], { title: 'МАГАЗИН ИНСТРУМЕНТОВ' });
@@ -862,6 +862,7 @@ function openShop() {
 
 function saveMsg() {
   const d = $('#saving');
+  if (!d) return;
   d.classList.add('show');
   setTimeout(() => d.classList.remove('show'), 1600);
 }
@@ -881,12 +882,11 @@ function gameOver() {
 // ---------------------------------------------------------------------
 function showIntro(after) {
   modal(`<div class="intro">
-    <div class="intro-row">${gp('x')}<p><b>Скупайте</b> вещи дешевле их реальной цены и <b>перепродавайте</b> покупателям или на вечернем аукционе.</p></div>
-    <div class="intro-row">${gp('s')}<p><b>Осматривайте</b> всё. Сверяйтесь с <b>каталогом</b>: подделки выдают опечатки, клейма, вес, магнит и УФ-свечение.</p></div>
-    <div class="intro-row">${gp('t')}<p>Следите за <b>ориентировками</b>: гравировки, серийники и IMEI краденых вещей. Нашли — <b>вызывайте полицию</b>.</p></div>
-    <div class="intro-row">${gp('x')}<p><b>Ремонтируйте</b> вещи клиентов: чистка, замена экрана и батареек, склейка.</p></div>
-    <div class="intro-row">${gp('o')}<p>Каждый вечер — <b>аренда</b>. Не уйдите в минус и берегите <b>репутацию</b>.</p></div>
-    <p class="muted">Управление: касания или мышь. На клавиатуре — стрелки, Enter и Esc.</p>
+    <div class="intro-row">${icon('coin')}<p><b>Скупайте</b> вещи дешевле их реальной цены и <b>перепродавайте</b> покупателям или на вечернем аукционе.</p></div>
+    <div class="intro-row">${icon('lens')}<p><b>Осматривайте</b> всё. Сверяйтесь с <b>каталогом</b>: подделки выдают опечатки, клейма, вес, магнит и УФ-свечение.</p></div>
+    <div class="intro-row">${icon('siren')}<p>Следите за <b>ориентировками</b>: гравировки, серийники и IMEI краденых вещей. Нашли — <b>вызывайте полицию</b>.</p></div>
+    <div class="intro-row">${icon('wrench')}<p><b>Ремонтируйте</b> вещи клиентов: чистка, замена экрана и батареек, склейка.</p></div>
+    <div class="intro-row">${icon('alert')}<p>Каждый вечер — <b>аренда</b>. Не уйдите в минус и берегите <b>репутацию</b>.</p></div>
   </div>`, [{ t: 'Понятно, открываемся', g: 'x', fn: () => { closeModal(); after(); } }], { title: 'КАК ИГРАТЬ' });
 }
 
@@ -895,11 +895,10 @@ function boot() {
   if (!Scene3D.ok) $('#app').classList.add('no3d');
   Scene3D.onItemClick = (it) => { if (!$('#inspect').classList.contains('show') && currentCustomer && currentCustomer.item) openInspect(it, currentCustomer); else if (!$('#inspect').classList.contains('show')) openInspect(it); };
   Scene3D.titleMode(true);
-  $('#itemHint').innerHTML = gp('s') + 'ОСМОТРЕТЬ ПРЕДМЕТ';
+  $('#itemHint').innerHTML = icon('lens') + 'ОСМОТРЕТЬ ПРЕДМЕТ';
   $('#itemHint').onclick = () => { const it = currentCustomer && currentCustomer.item; if (it) openInspect(it, currentCustomer); };
   $('#bPause').onclick = () => { Sfx.click(); openPause(); };
   $('#bInv').onclick = () => { Sfx.click(); if (!$('#modal').classList.contains('show')) openInventory(null); };
-  window.addEventListener('keydown', (e) => { if ((e.key === 'p' || e.key === 'з') && S && !$('#title').classList.contains('show')) openPause(); });
 
   const saved = load();
   const best = getBest();
@@ -908,9 +907,8 @@ function boot() {
   $('#app').classList.add('at-title');
   T.innerHTML = `
     <div class="t-logo"><div class="t-main">ЛОМБАРД</div><div class="t-sub">ПОСЛЕДНИЙ ШАНС</div></div>
-    <div class="t-press" id="tPress">НАЖМИТЕ СТАРТ</div>
     <div class="t-menu" id="tMenu"></div>
-    <div class="t-foot">${best ? `РЕКОРД: ${best} ДН. · ` : ''}© 2004 НОЧНАЯ СМЕНА</div>`;
+    <div class="t-foot">${best ? `Рекорд: ${best} дн.` : ''}</div>`;
   const go = (st) => {
     Sfx.init();
     S = st;
@@ -920,21 +918,11 @@ function boot() {
     hud();
     if (!S.seenIntro) { S.seenIntro = true; showIntro(startDay); } else startDay();
   };
-  const showMenu = async () => {
-    if (T._menu) return; T._menu = true;
-    Sfx.init(); Sfx.boot();
-    $('#tPress').remove();
-    const mm = $('#tMenu');
-    mm.innerHTML = '<div class="t-load">ПРОВЕРКА КАРТЫ ПАМЯТИ<span class="dots"></span></div>';
-    await wait(900);
-    mm.innerHTML = '';
-    mm.appendChild(menuList([
-      saved ? { t: `Продолжить · день ${pad2(saved.day)}`, g: 'x', fn: () => go(Object.assign(newState(), saved)) } : null,
-      { t: 'Новая игра', g: 'x', fn: () => go(newState()) },
-    ]));
-  };
-  T.onclick = (e) => { if (!T._menu) { e.stopPropagation(); showMenu(); } };
-  window.addEventListener('keydown', (e) => { if (T.classList.contains('show') && !T._menu && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); showMenu(); } });
+  const mm = $('#tMenu');
+  mm.appendChild(menuList([
+    saved ? { t: `Продолжить · день ${pad2(saved.day)}`, g: 'x', fn: () => go(Object.assign(newState(), saved)) } : null,
+    { t: 'Новая игра', g: saved ? 't' : 'x', icon: 'flip', fn: () => go(newState()) },
+  ]));
 }
 
 window.addEventListener('load', boot);

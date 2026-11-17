@@ -68,6 +68,7 @@ const Scene3D = {
     this.buildLights();
     this.resize();
     window.addEventListener('resize', () => this.resize());
+    if (window.ResizeObserver) new ResizeObserver(() => this.resize()).observe(host);
     r.domElement.addEventListener('pointerdown', (e) => this.pick(e));
     this.last = performance.now();
     const loop = (now) => {

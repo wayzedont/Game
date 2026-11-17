@@ -1,16 +1,6 @@
 // =====================================================================
-//  Элементы интерфейса: глифы кнопок геймпада, иконки, меню
+//  Элементы интерфейса: иконки и кнопки действий (сенсорный интерфейс)
 // =====================================================================
-
-const GLYPH = {
-  x: '<path d="M6 6 L14 14 M14 6 L6 14" stroke="#86a8ff" stroke-width="2.2" stroke-linecap="round"/>',
-  o: '<circle cx="10" cy="10" r="4.6" fill="none" stroke="#ff6d6d" stroke-width="2.2"/>',
-  t: '<path d="M10 5 L15 14 L5 14 Z" fill="none" stroke="#5fe0a0" stroke-width="2" stroke-linejoin="round"/>',
-  s: '<rect x="5.5" y="5.5" width="9" height="9" fill="none" stroke="#ff8ad8" stroke-width="2"/>',
-};
-function gp(k) {
-  return `<svg class="glyph" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9.3" fill="#141418" stroke="#6b6b78" stroke-width="1"/><circle cx="10" cy="8" r="7" fill="#fff" opacity=".06"/>${GLYPH[k] || ''}</svg>`;
-}
 
 const ICON_PATHS = {
   flip: '<path d="M5 9a7 7 0 0 1 12-3l2 2M19 15a7 7 0 0 1-12 3l-2-2"/><path d="M19 4v4h-4M5 20v-4h4"/>',
@@ -24,42 +14,42 @@ const ICON_PATHS = {
   coffee: '<path d="M5 9h11v6a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4z"/><path d="M16 11h2a2 2 0 0 1 0 4h-2M8 3v3M12 3v3"/>',
   sign: '<rect x="3" y="7" width="18" height="9"/><path d="M8 7l4-4 4 4M7 11h10"/>',
   case: '<rect x="3" y="8" width="18" height="12"/><path d="M9 8V5h6v3M3 13h18"/>',
-  sound: '<path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16 9a4 4 0 0 1 0 6M18 6a8 8 0 0 1 0 12"/>',
-  mute: '<path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16 9l5 6M21 9l-5 6"/>',
   lock: '<rect x="5" y="11" width="14" height="9"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
+  lens: '<circle cx="10" cy="10" r="6"/><path d="M15 15l6 6"/>',
+  alert: '<path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18v.5"/>',
+  siren: '<path d="M6 18v-6a6 6 0 0 1 12 0v6"/><path d="M4 18h16v3H4zM12 2v2M4 6l1.5 1.5M20 6l-1.5 1.5"/>',
+  back: '<path d="M10 6l-6 6 6 6M4 12h16"/>',
+  close: '<path d="M6 6l12 12M18 6L6 18"/>',
+  menu: '<path d="M4 6h16M4 12h16M4 18h16"/>',
+  coin: '<circle cx="12" cy="12" r="8"/><path d="M12 7v10M9.5 9.5h4a1.5 1.5 0 0 1 0 3h-3a1.5 1.5 0 0 0 0 3h4"/>',
+  wrench: '<path d="M14 6a4 4 0 0 0 5 5l-9 9a2 2 0 0 1-3-3l9-9a4 4 0 0 1-2-2z"/>',
+  hand: '<path d="M7 12V6a1.5 1.5 0 0 1 3 0v5M10 11V4a1.5 1.5 0 0 1 3 0v7M13 11V5a1.5 1.5 0 0 1 3 0v7M16 12V8a1.5 1.5 0 0 1 3 0v6a7 7 0 0 1-7 7h-1a6 6 0 0 1-5-3l-2-4a1.5 1.5 0 0 1 2.5-1.5L7 15"/>',
+  tag: '<path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8.5" r="1.5"/>',
+  sparkle: '<path d="M12 3v6M12 15v6M3 12h6M15 12h6M6 6l3 3M15 15l3 3M18 6l-3 3M9 15l-3 3"/>',
 };
-function icon(k) { return `<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">${ICON_PATHS[k] || ''}</svg>`; }
+function icon(k) { return `<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">${ICON_PATHS[k] || ''}</svg>`; }
 
-// ---------- меню-список (как в играх тех лет) ----------
-// items: [{t, g:'x'|'o'|'t'|'s', fn, cls, note, disabled}]
+// Кнопки действий.
+// items: [{t, g, icon, fn, cls, note, disabled}]
+//   g: 'x' — главное действие, 'o' — назад/отказ, 's' — осмотр, 't' — особое
 function menuList(items, opts = {}) {
+  const list = items.filter(Boolean);
   const box = el('div', { class: 'menu' + (opts.cls ? ' ' + opts.cls : '') });
-  items.filter(Boolean).forEach((a, i) => {
-    const b = el('button', { class: 'mi' + (a.cls ? ' ' + a.cls : '') + (i === 0 ? ' sel' : '') }, `${gp(a.g || 'x')}<span class="mi-t">${a.t}</span>${a.note ? `<span class="mi-n">${a.note}</span>` : ''}`);
+  let primaryUsed = false;
+  list.forEach((a, i) => {
+    let kind = '';
+    if (a.g === 'x' && !primaryUsed) { kind = 'primary'; primaryUsed = true; }
+    else if (a.g === 'o') kind = 'back';
+    if (a.cls && a.cls.includes('danger')) kind = 'danger';
+    const ic = a.icon || { s: 'lens', t: a.cls && a.cls.includes('danger') ? 'siren' : 'alert', o: 'back' }[a.g] || '';
+    const b = el('button', { class: `mi ${kind} ${a.cls || ''}` }, `${ic ? icon(ic) : ''}<span class="mi-t">${a.t}</span>${a.note ? `<span class="mi-n">${a.note}</span>` : ''}`);
     if (a.disabled) b.disabled = true;
     b.onclick = () => { if (b.disabled) return; Sfx.click(); a.fn(); };
-    b.onpointerenter = (e) => { if (e.pointerType === 'mouse') selectMi(box, b); };
-    b._g = a.g;
     box.appendChild(b);
   });
+  // нечётное число второстепенных кнопок — последняя на всю ширину
+  const rest = $$('.mi:not(.primary)', box);
+  if (rest.length % 2 === 1) rest[rest.length - 1].classList.add('wide');
+  if (list.length === 1) box.firstChild.classList.add('wide');
   return box;
 }
-function selectMi(box, b) { $$('.mi', box).forEach((x) => x.classList.toggle('sel', x === b)); }
-
-// Клавиатура: стрелки — выбор, Enter/Пробел — ✕, Esc/Backspace — ○
-function activeMenu() {
-  const layers = ['#title', '#mg', '#modal2', '#inspect', '#modal'];
-  for (const s of layers) { const l = $(s); if (l && l.classList.contains('show')) return $('.menu', l); }
-  return $('#actions .menu');
-}
-window.addEventListener('keydown', (e) => {
-  const m = activeMenu();
-  if (!m) return;
-  const items = $$('.mi', m).filter((b) => !b.disabled);
-  if (!items.length) return;
-  let i = items.findIndex((b) => b.classList.contains('sel'));
-  if (e.key === 'ArrowDown' || e.key === 'ArrowRight') { i = (i + 1) % items.length; selectMi(m, items[i]); Sfx.tick(); e.preventDefault(); }
-  else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') { i = (i - 1 + items.length) % items.length; selectMi(m, items[i]); Sfx.tick(); e.preventDefault(); }
-  else if (e.key === 'Enter' || e.key === ' ') { (items[i] || items[0]).click(); e.preventDefault(); }
-  else if (e.key === 'Escape' || e.key === 'Backspace') { const o = items.find((b) => b._g === 'o'); if (o) { o.click(); e.preventDefault(); } }
-});
